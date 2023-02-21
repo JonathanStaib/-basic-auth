@@ -68,25 +68,28 @@ app.post('/signup', async (req, res) => {
 // http post :3000/signin -a john:foo
 const basicAuth = async (req, res, next) => {
 
-  console.log(' here: ', req);
-
+  console.log(' here: ', req.headers.authorization);
+  let {authorization} = req.headers;
+  let authString = authorization.split(' ')[1];
+  let decodedAuth = base64.decode(authString);
+  let [username, password] = decodedAuth.split(':');
+  console.log(username, password);
   try {
-    let user = await Users.findOne({ where: { username: req.body.username } });
+    let user = await Users.findOne({ where: { username } });
 
-    console.log(user);
+    console.log('user: ', user);
 
-    let validUser = await bcrypt.compare(req.body.password, user.password);
+    let validUser = await bcrypt.compare(password, user.password);
     console.log(validUser);
 
     if (validUser) {
-      res.status(200).json(user);
-      console.log(`${JSON.stringify(user.username)} is validated!`);
-      return;
+      req.user = user;
+      next();
     }
   } catch (error) {
     console.log(error);
+    res.status(403).send('user invalid');
   }
-  res.status(403).send('user invalid');
 };
 
 app.post('/signin', basicAuth, (req, res, next) => {

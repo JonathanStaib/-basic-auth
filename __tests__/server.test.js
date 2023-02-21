@@ -23,15 +23,16 @@ describe('Sign-In, Sign-Up', () => {
 
     expect(response.status).toEqual(201);
     expect(response.body.username).toEqual('Tester');
+    expect(response.body.password).toBeTruthy();
     expect(response.body.id).toBeTruthy();
   });
 
   it('find pre-existing user', async () => {
-    let response = await request.post('/signin').send({
-      username: 'Tester',
-      password: 'pass123',
-    });
-
+    let response = await request.post('/signin').auth(
+      'Tester',
+      'pass123',
+    );
+    console.log('response: ', response);
     expect(response.status).toEqual(200);
     expect(response.body.username).toEqual('Tester');
     expect(response.body.id).toBeTruthy();
